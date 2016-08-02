@@ -2,6 +2,10 @@
 
 org-labels is a node app that manages Github labels accross entire orgs. It allows you to easily add/remove labels en masse. It also allows you to define your labels in a JSON file that it uses to update all repos with. This makes it easy for us to have consistent labelling on all our orgs, which other tools can consume.
 
+## Homepage
+
+https://github.com/repo-utils/org-labels
+
 ## Installation
 
 First you'll need node on your system. If you're running OS X you can install it via brew with
