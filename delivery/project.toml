@@ -2,7 +2,7 @@
 unit = "rspec spec/"
 lint = 'cookstyle --display-cop-names --extra-details'
 syntax = "foodcritic ."
-provision = "echo skip"
+provision = "echo skipping"
 deploy = "echo skipping"
 smoke = "echo skipping"
 functional = "echo skipping"
