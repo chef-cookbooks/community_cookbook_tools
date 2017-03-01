@@ -21,9 +21,7 @@ if [ ! ${#AVAILABLE_UPDATES[@]} -eq 0 ]; then
     BOX_UPDATED="TRUE"
 
     # Remove all old versions
-    for version in $VERSIONS ; do
-      vagrant box remove $box -f --box-version=$version
-    done
+    vagrant box prune -f > /dev/null 2>&1
 
   done
 
