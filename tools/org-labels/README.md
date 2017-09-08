@@ -22,9 +22,19 @@ npm install -g org-labels
 
 ## Configuration
 
-A configuration JSON file is located at config/github_labels.json
+A configuration JSON file is located in the `community_cookbooks_tools` repo at config/github_labels.json
 
-Locally the application prompts for username / login.
+Locally the application prompts for username / login. You should have 2 factor authentication configured for your github account. If you do, you'll need to input that code as well even though the screen implies it's optional.
+
+Example of login screen:
+
+```
+Jennifers-MBP:community_cookbook_tools sigje$ org-labels standardize chef-cookbooks chef-cookbooks/community_cookbook_tools
+Your GitHub username: iennae
+Your GitHub password: ✔✔✔✔✔✔✔✔✔✔✔✔✔✔✔✔
+
+Your GitHub OTP/2FA Code (optional):
+```
 
 If you receive 404 errors when you run the application either:
 
