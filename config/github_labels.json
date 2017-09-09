@@ -13,5 +13,6 @@
   { "name": "Type: Maintenance", "color": "fbca04" },
   { "name": "Type: Enhancement", "color": "84b6eb" },
   { "name": "Type: Question", "color": "cc317c" },
-  { "name": "Type: Feature Request", "color": "cc317c" }
+  { "name": "Type: Feature Request", "color": "cc317c" },
+  { "name": "Type: Jump In", "color": "bfe5bf" }
 ]
