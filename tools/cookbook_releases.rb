@@ -36,6 +36,7 @@ end
 
 since_date = DateTime.parse(ARGV.first)
 till_date = DateTime.parse(ARGV[1] ? ARGV[1] : Time.now)
+verbose = ARGV[2] == '-v' ? true : false
 releases = []
 deprecated = []
 
@@ -57,3 +58,9 @@ end
 
 puts "\nThere have been #{releases.count} cookbook releases between #{since_date} and #{till_date}"
 puts "\nThere have been #{deprecated.count} cookbooks deprecated between #{since_date} and #{till_date}"
+
+return unless verbose
+puts "\nReleases:"
+releases.each do |c|
+  puts "#{c.keys.first} #{c.values.first}"
+end
