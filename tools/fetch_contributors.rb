@@ -51,7 +51,7 @@ def chef_employee?(login)
   # the following require looking up the user with Github first
   user = connection.user(login)
   if user["company"].match?(/chef|opscode|habitat|msystechnologies/i) ||
-      user["email"].match?(/opscode\.com|chef\.io|getchef\.com|habitat\sh/i)
+      user["email"].match?(/opscode\.com|chef\.io|getchef\.com|habitat\.sh/i)
     @employees << user["login"]
     return true
   end
