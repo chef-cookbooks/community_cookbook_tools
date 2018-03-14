@@ -37,13 +37,11 @@ end
 def chef_employee?(login)
   @not_employees ||= []
   # start with a few users that aren't matched by the below logic, but totally work at Chef
-  @employees ||= %w(jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter)
+  @employees ||= %w(jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter miah)
 
   # don't bother further processing if we know their state
   return true if @employees.include?(login)
   return false if @not_employees.include?(login)
-
-  puts "looking up #{login}"
 
   if login.match?(/msys/i) # msys contractors
     @employees << login
@@ -52,8 +50,7 @@ def chef_employee?(login)
 
   # the following require looking up the user with Github first
   user = connection.user(login)
-  if user["company"].match?(/chef|opscode|habitat/i) ||
-      user["email"].match?(/chef|opscode|habitat/i) ||
+  if user["company"].match?(/chef|opscode|habitat|msystechnologies/i) ||
       user["email"].match?(/opscode\.com|chef\.io|getchef\.com|habitat\sh/i)
     @employees << user["login"]
     return true
