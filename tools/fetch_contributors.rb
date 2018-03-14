@@ -35,7 +35,12 @@ def setup_connection
 end
 
 def chef_employee(user)
-  user["company"].match(/chef|opscode|habitat/i) || user["email"].match(/chef|opscode|habitat/i)
+  return true if user["company"].match?(/chef|opscode|habitat/i)
+  return true if user["email"].match?(/chef|opscode|habitat/i)
+  return true if user["login"].match?(/msys/i) # msys contractors
+  return true if user["email"].match?(/opscode\.com|chef\.io|getchef\.com|habitat\sh/i) # company isn't chef, but e-mail is
+  # weed out some known employees I found
+  return true if %w(jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter).include? user["login"]
 rescue NoMethodError
   false
 end
