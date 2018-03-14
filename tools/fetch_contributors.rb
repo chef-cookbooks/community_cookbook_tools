@@ -34,14 +34,36 @@ def setup_connection
   connection
 end
 
-def chef_employee(user)
-  return true if user["company"].match?(/chef|opscode|habitat/i)
-  return true if user["email"].match?(/chef|opscode|habitat/i)
-  return true if user["login"].match?(/msys/i) # msys contractors
-  return true if user["email"].match?(/opscode\.com|chef\.io|getchef\.com|habitat\sh/i) # company isn't chef, but e-mail is
-  # weed out some known employees I found
-  return true if %w(jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter).include? user["login"]
+def chef_employee?(login)
+  @not_employees ||= []
+  # start with a few users that aren't matched by the below logic, but totally work at Chef
+  @employees ||= %w(jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter)
+
+  # don't bother further processing if we know their state
+  return true if @employees.include?(login)
+  return false if @not_employees.include?(login)
+
+  puts "looking up #{login}"
+
+  if login.match?(/msys/i) # msys contractors
+    @employees << login
+    return true
+  end
+
+  # the following require looking up the user with Github first
+  user = connection.user(login)
+  if user["company"].match?(/chef|opscode|habitat/i) ||
+      user["email"].match?(/chef|opscode|habitat/i) ||
+      user["email"].match?(/opscode\.com|chef\.io|getchef\.com|habitat\sh/i)
+    @employees << user["login"]
+    return true
+  end
+
+  # assume not an employee now
+  @not_employees << user["login"]
+  false
 rescue NoMethodError
+  @not_employees << user["login"]
   false
 end
 
@@ -61,7 +83,7 @@ def fetch_prs(org)
     next if DateTime.parse(issue["created_at"].to_s) < DateTime.now - 365
 
     if @ignore_cheffers
-      next if chef_employee(connection.user(issue["user"]["login"]))
+      next if chef_employee?(connection.user(issue["user"]["login"]))
     end
 
     # add the user to the hash with several attributes
