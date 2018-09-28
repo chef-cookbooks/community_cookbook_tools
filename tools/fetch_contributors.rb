@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-unless ENV['GITHUB_TOKEN']
+unless ENV["GITHUB_TOKEN"]
   puts "You must set the GITHUB_TOKEN environmental variable with a GitHub token!"
   exit 1
 end
@@ -28,7 +28,7 @@ def setup_connection
     builder.adapter Faraday.default_adapter
   end
 
-  connection = Octokit::Client.new(access_token: ENV['GITHUB_TOKEN'])
+  connection = Octokit::Client.new(access_token: ENV["GITHUB_TOKEN"])
   connection.auto_paginate = true
   connection.middleware = faraday
   connection
@@ -36,8 +36,8 @@ end
 
 def chef_employee?(login)
   @not_employees ||= []
-  # start with a few users that aren't matched by the below logic, but totally work at Chef
-  @employees ||= %w(jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter miah)
+  # start with a few users that aren't matched by the below logic, but totally work at Chef or worked at Chef recently
+  @employees ||= %w(jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter miah chef-ci nsdavidson jjasghar nathenharvey iennae)
 
   # don't bother further processing if we know their state
   return true if @employees.include?(login)
@@ -64,42 +64,63 @@ rescue NoMethodError
   false
 end
 
+def verbose?
+  ARGV[2] == "-v" ? true : false
+end
+
 def fetch_prs(org)
   puts "\nFetching all users that have opened PRs against the org #{org} in the last year. This may take a long while...\n\n"
   users = {}
+  repos = {}
+  pr_count = 0
   # fetch any issue ever created that's in any state and don't filter anything
-  connection.org_issues(org, state: "all", filter: "all", sort: "created", since: DateTime.now - 365).each do |issue|
 
-    # we're not doing this for private repos
-    next if issue[:repository][:private] == true
+  connection.organization_repositories(org, {:type => 'public'}).each do |repo|
+    puts "we're in #{repo['full_name']}" if verbose?
 
-    # skip issues
-    next unless issue[:pull_request]
+    connection.pull_requests(repo['full_name'], {:state => 'all'}).each do |issue|
+      # The result set is sorted from new to old so if we hit one older than a year
+      # we can break and move onto the next repo
+      puts "The issue is from #{issue['created_at']}" if verbose?
+      #require 'pry'; binding.pry
+      break if DateTime.parse(issue['created_at'].to_s) < ( DateTime.now - 365 )
 
-    # the filter returns old PRs that have been updated recently. Those dont' count
-    next if DateTime.parse(issue["created_at"].to_s) < DateTime.now - 365
+      if @ignore_cheffers
+        puts "#{issue["user"]["login"]} is an employee?: #{chef_employee?(issue["user"]["login"])}" if verbose?
+        next if chef_employee?(issue["user"]["login"])
+      end
 
-    if @ignore_cheffers
-      next if chef_employee?(connection.user(issue["user"]["login"]))
+      # don't count PRs we never merged
+      next if issue['closed'] && issue['merged_at'].nil?
+
+      # bump the total PR count
+      pr_count += 1
+
+      # bump the repo PR count.
+      if repos[repo['name']]
+        repos[repo['name']] += 1
+      else
+        repos[repo['name']] = 1
+      end
+
+      # add the user to the hash with several attributes
+      unless users[issue["user"]["login"]]
+        users[issue["user"]["login"]] = {}
+        users[issue["user"]["login"]]["repos"] = []
+        users[issue["user"]["login"]]["contributions"] = 0
+        users[issue["user"]["login"]]["username"] = issue["user"]["login"]
+
+        user_details = connection.user(issue["user"]["login"])
+        users[issue["user"]["login"]]["e-mail"] = user_details["email"]
+        users[issue["user"]["login"]]["name"] = user_details["name"]
+        users[issue["user"]["login"]]["company"] = user_details["company"]
+      end
+      users[issue["user"]["login"]]["contributions"] += 1
+      users[issue["user"]["login"]]["repos"] << repo['full_name'] unless users[issue["user"]["login"]]["repos"].include?(repo['full_name'])
     end
-
-    # add the user to the hash with several attributes
-    unless users[issue["user"]["login"]]
-      users[issue["user"]["login"]] = {}
-      users[issue["user"]["login"]]["repos"] = []
-      users[issue["user"]["login"]]["contributions"] = 0
-      users[issue["user"]["login"]]["username"] = issue["user"]["login"]
-
-      user_details = connection.user(issue["user"]["login"])
-      users[issue["user"]["login"]]["e-mail"] = user_details["email"]
-      users[issue["user"]["login"]]["name"] = user_details["name"]
-      users[issue["user"]["login"]]["company"] = user_details["company"]
-    end
-    users[issue["user"]["login"]]["contributions"] += 1
-    users[issue["user"]["login"]]["repos"] << issue["repository"]["name"] unless users[issue["user"]["login"]]["repos"].include?(issue["repository"]["name"])
   end
 
-  users.sort_by { |k, v| v["contributions"] }.reverse.to_h
+  return users.sort_by { |_k, v| v["contributions"] }.reverse.to_h, repos, pr_count
 end
 
 if ARGV.empty?
@@ -107,6 +128,21 @@ if ARGV.empty?
   exit!
 end
 
-fetch_prs(ARGV.first).each_value do |user|
-  puts "#{user['username']},#{user['name']},#{user['e-mail']},#{user['company'].delete(',') rescue nil},#{user['contributions']},#{user['repos'].join(' ')}"
+users, repos, pr_count = fetch_prs(ARGV.first)
+
+puts "\n\nCONTRIBUTOR STATS\n\n"
+users.each_value do |user|
+  puts "#{user['username']},#{user['name']},#{user['e-mail']},#{begin
+                                                                  user['company'].delete(',')
+                                                                rescue
+                                                                  nil
+                                                                end},#{user['contributions']},#{user['repos'].join(' ')}"
 end
+
+puts "\n\nREPO PR COUNTS\n\n"
+repos.each do |k,v|
+  puts "#{k}, #{v}"
+end
+
+puts "\n\nTOTAL PR COUNT\n\n"
+puts pr_count
