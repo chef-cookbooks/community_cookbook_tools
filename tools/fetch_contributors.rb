@@ -37,7 +37,7 @@ end
 def chef_employee?(login)
   @not_employees ||= []
   # start with a few users that aren't matched by the below logic, but totally work at Chef or worked at Chef recently
-  @employees ||= %w{jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter miah chef-ci nsdavidson jjasghar nathenharvey iennae PrajaktaPurohit Vasu1105 itmustbejj brewn thomascate dmccown phiggins paulmooring jvogt sjvreddy russellseymour mchiang0610 susanev yzl}
+  @employees ||= %w{jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter miah chef-ci nsdavidson jjasghar nathenharvey iennae PrajaktaPurohit Vasu1105 itmustbejj brewn thomascate dmccown phiggins paulmooring jvogt sjvreddy russellseymour mchiang0610 susanev yzl mjingle}
 
   # don't bother further processing if we know their state
   return true if @employees.include?(login)
@@ -64,6 +64,10 @@ rescue NoMethodError
   false
 end
 
+def skip_repo?(repo)
+  true if %w{chef/devops-kungfu chef/community-summits chef/chef-web-docs}.include?(repo)
+end
+
 def verbose?
   ARGV[1] == "-v" ? true : false
 end
@@ -79,6 +83,12 @@ def fetch_prs(org)
     puts "we're in #{repo['full_name']}" if verbose?
 
     connection.pull_requests(repo["full_name"], { :state => "all" }).each do |issue|
+
+      if skip_repo?(repo["full_name"])
+        puts "skipping blacklisted repo #{repo['name']}" if verbose?
+        break
+      end
+
       # The result set is sorted from new to old so if we hit one older than a year
       # we can break and move onto the next repo
       puts "The issue is from #{issue['created_at']}" if verbose?
