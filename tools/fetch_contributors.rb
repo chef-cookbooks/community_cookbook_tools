@@ -37,7 +37,7 @@ end
 def chef_employee?(login)
   @not_employees ||= []
   # start with a few users that aren't matched by the below logic, but totally work at Chef or worked at Chef recently
-  @employees ||= %w{jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter miah chef-ci nsdavidson jjasghar nathenharvey iennae}
+  @employees ||= %w{jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter miah chef-ci nsdavidson jjasghar nathenharvey iennae PrajaktaPurohit Vasu1105 itmustbejj brewn thomascate dmccown phiggins paulmooring jvogt sjvreddy russellseymour mchiang0610 susanev yzl}
 
   # don't bother further processing if we know their state
   return true if @employees.include?(login)
