@@ -28,15 +28,14 @@ def deprecated_date(cb)
   return DateTime.parse(response["updated_at"]) if response["deprecated"]
 end
 
-
 if ARGV.empty?
-  puts "You must pass the date in format similar to 2017-01-01"
+  puts "You must pass two dates in format: 2017-10-01"
   exit!
 end
 
 since_date = DateTime.parse(ARGV.first)
 till_date = DateTime.parse(ARGV[1] ? ARGV[1] : Time.now)
-verbose = ARGV[2] == '-v' ? true : false
+verbose = ARGV[2] == "-v" ? true : false
 releases = []
 deprecated = []
 
