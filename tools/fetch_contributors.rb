@@ -65,7 +65,7 @@ rescue NoMethodError
 end
 
 def skip_repo?(repo)
-  true if %w{chef/devops-kungfu chef/community-summits chef/chef-web-docs}.include?(repo)
+  true if %w{chef/devops-kungfu chef/community-summits chef/chef-web-docs chef/lambda_ebs_snapshot chef/compliance-workshop-environment chef/devops-transformation-workshop chef/dotscaleworkshop}.include?(repo)
 end
 
 def verbose?
@@ -79,21 +79,23 @@ def fetch_prs(org)
   pr_count = 0
   # fetch any issue ever created that's in any state and don't filter anything
 
+  # fetch all public repos in the org
   connection.organization_repositories(org, { :type => "public" }).each do |repo|
-    puts "we're in #{repo['full_name']}" if verbose?
+    # skip if we're in a blacklisted repo
+    if skip_repo?(repo["full_name"])
+      puts "skipping blacklisted repo #{repo['name']}" if verbose?
+      break
+    else
+      puts "we're in #{repo['full_name']}" if verbose?
+    end
 
+    # grab all PRs in the repo
     connection.pull_requests(repo["full_name"], { :state => "all" }).each do |issue|
-
-      if skip_repo?(repo["full_name"])
-        puts "skipping blacklisted repo #{repo['name']}" if verbose?
-        break
-      end
-
       # The result set is sorted from new to old so if we hit one older than a year
       # we can break and move onto the next repo
-      puts "The issue is from #{issue['created_at']}" if verbose?
-      #require 'pry'; binding.pry
       break if DateTime.parse(issue["created_at"].to_s) < ( DateTime.now - 365 )
+
+      puts "The issue is from #{issue['created_at']}" if verbose?
 
       if @ignore_cheffers
         puts "#{issue["user"]["login"]} is an employee?: #{chef_employee?(issue["user"]["login"])}" if verbose?
