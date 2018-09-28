@@ -37,7 +37,7 @@ end
 def chef_employee?(login)
   @not_employees ||= []
   # start with a few users that aren't matched by the below logic, but totally work at Chef or worked at Chef recently
-  @employees ||= %w{jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter miah chef-ci nsdavidson jjasghar nathenharvey iennae PrajaktaPurohit Vasu1105 itmustbejj brewn thomascate dmccown phiggins paulmooring jvogt sjvreddy russellseymour mchiang0610 susanev yzl mjingle}
+  @employees ||= %w{jonsmorrow kagarmoe robbkidd jeremiahsnapp chef-delivery NAshwini chris-rock hannah-radish tyler-ball wrightp TheLunaticScripter miah chef-ci nsdavidson jjasghar nathenharvey iennae PrajaktaPurohit Vasu1105 itmustbejj brewn thomascate dmccown phiggins paulmooring jvogt sjvreddy russellseymour mchiang0610 susanev yzl mjingle lnxchk jmassardo ChefRycar trevorghess cwebberOps smford22 apriofrost fnichol}
 
   # don't bother further processing if we know their state
   return true if @employees.include?(login)
@@ -50,7 +50,7 @@ def chef_employee?(login)
 
   # the following require looking up the user with Github first
   user = connection.user(login)
-  if user["company"].match?(/chef|opscode|habitat|msystechnologies/i) ||
+  if user["company"].match?(/chef|opscode|habitat|msystechnologies|kinvolk/i) ||
       user["email"].match?(/opscode\.com|chef\.io|getchef\.com|habitat\.sh/i)
     @employees << user["login"]
     return true
@@ -65,7 +65,7 @@ rescue NoMethodError
 end
 
 def skip_repo?(repo)
-  true if %w{chef/devops-kungfu chef/community-summits chef/chef-web-docs chef/lambda_ebs_snapshot chef/compliance-workshop-environment chef/devops-transformation-workshop chef/dotscaleworkshop}.include?(repo)
+  true if %w{chef/devops-kungfu chef/community-summits chef/chef-web-docs chef/lambda_ebs_snapshot chef/compliance-workshop-environment chef/devops-transformation-workshop chef/dotscaleworkshop chef/chef-summit-2014}.include?(repo)
 end
 
 def verbose?
